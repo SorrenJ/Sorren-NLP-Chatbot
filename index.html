@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot Sorren</title>
+  <style>
+    #chat-container { width: 400px; margin: 0 auto; }
+    #chat-display { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+    #chat-input { width: 80%; padding: 10px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="chat-display"></div>
+    <input id="chat-input" type="text" placeholder="Ask Sorren something...">
+    <button onclick="handleUserMessage()">Send</button>
+  </div>
+  <script src="chatbot.js"></script> <!-- Link to the JavaScript file here -->
+</body>
+</html>
