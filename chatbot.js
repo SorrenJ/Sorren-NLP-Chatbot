@@ -1,4 +1,4 @@
-// Sorren's predefined profile
+// Sorren's predefined profile data
 const sorrenProfile = {
     name: "Sorren",
     personality: {
@@ -13,50 +13,56 @@ const sorrenProfile = {
     ]
   };
   
-  // Initialize chat history in LocalStorage if not already present
-  if (!localStorage.getItem("chatHistory")) {
-    localStorage.setItem("chatHistory", JSON.stringify([]));
-  }
+  // Initialize Brain.js neural network with simpler NeuralNetwork model
+  const net = new brain.NeuralNetwork();
   
-  // Save chat history to LocalStorage
-  function saveChat(userMessage, botResponse) {
-    const chatHistory = JSON.parse(localStorage.getItem("chatHistory"));
-    chatHistory.push({ user: userMessage, sorren: botResponse });
-    localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-  }
+  // Minimal training data to reduce load time
+  const trainingData = [
+    { input: "Tell me about your skills", output: "I am skilled in JavaScript, React, and CSS." },
+    { input: "What was your first project?", output: "My first project was a to-do app." },
+    { input: "How are you?", output: "I'm just a bunch of code, but thanks for asking!" }
+  ];
   
-  // Retrieve chat history from LocalStorage
-  function getChatHistory() {
-    return JSON.parse(localStorage.getItem("chatHistory"));
-  }
+  // Train the network and enable chat interface when complete
+  net.train(trainingData, { log: true, iterations: 200, learningRate: 0.3 }, () => {
+    document.getElementById("loading").style.display = "none"; // Hide loading message
+    document.getElementById("chat-input").disabled = false; // Enable input field
+    document.querySelector("button").disabled = false; // Enable send button
+  });
   
-  // Process user input and match it to Sorren's predefined data
+  // Process input and generate a response using both predefined data and Brain.js
   function processInput(input) {
-    // Check if input matches any of Sorren's memories
+    // Check for any matches in Sorren's predefined memories or skills
     const memory = sorrenProfile.memories.find(mem => input.includes(mem.topic));
     if (memory) return memory.content;
   
-    // Check if input matches any of Sorren's skills
     const skill = sorrenProfile.skills.find(skill => input.includes(skill.toLowerCase()));
     if (skill) return `Yes, I'm skilled in ${skill}.`;
   
-    // Default response if input doesn't match predefined data
-    return "I'm not sure about that, but tell me more!";
+    // If no matches, generate a response using Brain.js
+    return net.run(input) || "I'm not sure about that, but tell me more!";
   }
   
-  // Generate Sorren's response based on profile and chat history
+  // Generate Sorren's response and adapt it with tone and humor
   function generateResponse(input) {
-    let response = processInput(input);
+    let response;
   
-    // Search history for related topics to make conversation more dynamic
-    const history = getChatHistory();
-    history.forEach(chat => {
-      if (input.includes(chat.user)) {
-        response += ` I remember you mentioned "${chat.user}" before!`;
+    // First, attempt to get a response from Sorren's predefined data
+    response = processInput(input);
+  
+    // If no predefined response is found, use Brain.js to generate a response
+    if (!response) {
+      const brainResponse = net.run(input);
+  
+      // Check if Brain.js returned a valid string; otherwise, use a fallback response
+      if (typeof brainResponse === "string") {
+        response = brainResponse;
+      } else {
+        response = "I'm not sure about that, but tell me more!";
       }
-    });
+    }
   
-    // Adjust response based on Sorren's personality
+    // Adapt response based on Sorren's personality
     if (sorrenProfile.personality.tone === "friendly") {
       response = "Hey there! " + response;
     }
@@ -64,26 +70,14 @@ const sorrenProfile = {
       response += " (Just kidding...or am I?)";
     }
   
-    saveChat(input, response); // Save chat for future reference
     return response;
   }
   
-  // Teach Sorren new memories based on repeated topics in chat
-  function learnNewMemory(input) {
-    const existingMemory = sorrenProfile.memories.find(mem => input.includes(mem.topic));
-    
-    if (!existingMemory) {
-      const newMemory = { topic: input.slice(0, 10), content: `You told me about "${input}"!` };
-      sorrenProfile.memories.push(newMemory);
-    }
-  }
   
   // Handle user message input and display Sorren's response
   function handleUserMessage() {
     const input = document.getElementById("chat-input").value;
     const response = generateResponse(input);
-    
-    learnNewMemory(input); // Teach Sorren new topics
   
     // Display user and Sorren's messages in chat
     const display = document.getElementById("chat-display");
